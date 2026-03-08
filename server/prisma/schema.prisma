@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  name           String
+  password       String
+  role           Role            @default(MEMBER)
+  teamId         String?
+  team           Team?           @relation(fields: [teamId], references: [id])
+  createdAt      DateTime        @default(now())
+  prompts        Prompt[]
+  promptVersions PromptVersion[]
+  evaluations    Evaluation[]
+  datasets       TestDataset[]
+}
+
+model Team {
+  id        String    @id @default(uuid())
+  name      String
+  plan      Plan      @default(FREE)
+  createdAt DateTime  @default(now())
+  users     User[]
+  projects  Project[]
+}
+
+model Project {
+  id          String           @id @default(uuid())
+  teamId      String
+  team        Team             @relation(fields: [teamId], references: [id])
+  name        String
+  description String?
+  createdAt   DateTime         @default(now())
+  prompts     Prompt[]
+  datasets    TestDataset[]
+  experiments Experiment[]
+  pipelines   PromptPipeline[]
+}
+
+model Prompt {
+  id               String          @id @default(uuid())
+  projectId        String
+  project          Project         @relation(fields: [projectId], references: [id])
+  name             String
+  description      String?
+  createdById      String
+  createdBy        User            @relation(fields: [createdById], references: [id])
+  currentVersionId String?
+  status           PromptStatus    @default(DRAFT)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  versions         PromptVersion[]
+}
+
+model PromptVersion {
+  id                 String          @id @default(uuid())
+  promptId           String
+  prompt             Prompt          @relation(fields: [promptId], references: [id])
+  versionNumber      Int
+  systemPrompt       String?
+  userPromptTemplate String
+  variables          Json            @default("[]")
+  modelConfig        Json            @default("{}")
+  tag                VersionTag?
+  createdById        String
+  createdBy          User            @relation(fields: [createdById], references: [id])
+  parentVersionId    String?
+  parentVersion      PromptVersion?  @relation("VersionBranch", fields: [parentVersionId], references: [id])
+  childVersions      PromptVersion[] @relation("VersionBranch")
+  createdAt          DateTime        @default(now())
+  evaluations        Evaluation[]
+  experimentsAsA     Experiment[]    @relation("ExperimentVersionA")
+  experimentsAsB     Experiment[]    @relation("ExperimentVersionB")
+}
+
+model TestDataset {
+  id          String       @id @default(uuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id])
+  name        String
+  description String?
+  entries     Json         @default("[]")
+  createdById String
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  evaluations Evaluation[]
+}
+
+model Evaluation {
+  id              String             @id @default(uuid())
+  promptVersionId String
+  promptVersion   PromptVersion      @relation(fields: [promptVersionId], references: [id])
+  datasetId       String?
+  dataset         TestDataset?       @relation(fields: [datasetId], references: [id])
+  status          EvaluationStatus   @default(RUNNING)
+  config          Json               @default("{}")
+  createdById     String
+  createdBy       User               @relation(fields: [createdById], references: [id])
+  startedAt       DateTime           @default(now())
+  completedAt     DateTime?
+  results         EvaluationResult[]
+}
+
+model EvaluationResult {
+  id             String     @id @default(uuid())
+  evaluationId   String
+  evaluation     Evaluation @relation(fields: [evaluationId], references: [id])
+  model          String
+  inputVariables Json       @default("{}")
+  output         String
+  metrics        Json       @default("{}")
+  cost           Decimal    @default(0)
+  createdAt      DateTime   @default(now())
+}
+
+model Experiment {
+  id           String           @id @default(uuid())
+  projectId    String
+  project      Project          @relation(fields: [projectId], references: [id])
+  name         String
+  versionAId   String
+  versionA     PromptVersion    @relation("ExperimentVersionA", fields: [versionAId], references: [id])
+  versionBId   String
+  versionB     PromptVersion    @relation("ExperimentVersionB", fields: [versionBId], references: [id])
+  trafficSplit Json             @default("{\"a\": 50, \"b\": 50}")
+  status       ExperimentStatus @default(RUNNING)
+  sampleSize   Int              @default(100)
+  results      Json?
+  startedAt    DateTime         @default(now())
+  completedAt  DateTime?
+}
+
+model PromptPipeline {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  name        String
+  steps       Json     @default("[]")
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum PromptStatus {
+  DRAFT
+  TESTING
+  PRODUCTION
+  DEPRECATED
+}
+
+enum VersionTag {
+  PRODUCTION
+  TESTING
+}
+
+enum EvaluationStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum ExperimentStatus {
+  RUNNING
+  COMPLETED
+}
