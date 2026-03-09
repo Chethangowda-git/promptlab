@@ -3,6 +3,9 @@ import AppLayout from './components/layout/AppLayout'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import Dashboard from './pages/Dashboard'
+import PromptsPage from './pages/prompts/PromptsPage'
+import PromptEditor from './pages/prompts/PromptEditor'
+import ExecutePage from './pages/ExecutePage'
 
 export default function App() {
   return (
@@ -12,6 +15,9 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/prompts" element={<PromptsPage />} />
+          <Route path="/prompts/:id" element={<PromptEditor />} />
+          <Route path="/execute" element={<ExecutePage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>

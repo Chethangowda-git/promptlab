@@ -11,11 +11,6 @@ export default function Sidebar() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
-
   return (
     <aside className="w-56 bg-gray-900 border-r border-gray-800 flex flex-col h-screen fixed left-0 top-0">
       <div className="px-5 py-5 border-b border-gray-800">
@@ -43,7 +38,7 @@ export default function Sidebar() {
       <div className="px-4 py-4 border-t border-gray-800">
         <p className="text-xs text-gray-400 truncate mb-2">{user?.name}</p>
         <button
-          onClick={handleLogout}
+          onClick={() => { logout(); navigate('/login') }}
           className="text-xs text-gray-500 hover:text-red-400 transition-colors"
         >
           Sign out

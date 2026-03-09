@@ -6,6 +6,7 @@ interface User {
   email: string
   name: string
   role: string
+  defaultProjectId: string | null  // add this
 }
 
 interface AuthState {
@@ -26,13 +27,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     const res = await api.post('/api/auth/login', { email, password })
     localStorage.setItem('token', res.data.token)
-    set({ user: res.data.user, token: res.data.token })
+    // set({ user: res.data.user, token: res.data.token })
+    set({ user: { ...res.data.user, defaultProjectId: res.data.defaultProjectId }, token: res.data.token })
   },
 
   register: async (email, name, password) => {
     const res = await api.post('/api/auth/register', { email, name, password })
     localStorage.setItem('token', res.data.token)
-    set({ user: res.data.user, token: res.data.token })
+    // set({ user: res.data.user, token: res.data.token })
+    set({ user: { ...res.data.user, defaultProjectId: res.data.defaultProjectId }, token: res.data.token })
   },
 
   logout: () => {
@@ -43,7 +46,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   fetchMe: async () => {
     try {
       const res = await api.get('/api/auth/me')
-      set({ user: res.data })
+      // set({ user: res.data })
+      set({ user: { ...res.data.user, defaultProjectId: res.data.defaultProjectId }, token: res.data.token })
     } catch {
       localStorage.removeItem('token')
       set({ user: null, token: null })

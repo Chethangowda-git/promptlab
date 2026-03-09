@@ -37,30 +37,46 @@ export async function improvePrompt(req: AuthRequest, res: Response): Promise<vo
   try {
     const { prompt, systemPrompt } = req.body
     const p = getProvider('groq')
-    const metaPrompt = `You are a prompt engineering expert. Improve the following prompt for clarity, specificity, and token efficiency.
 
-Return ONLY a JSON object (no markdown, no explanation outside the JSON) in this exact format:
+    const metaPrompt = `You are a prompt engineering expert. Improve the following prompt.
+
+IMPORTANT: Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation outside the JSON.
+
+Return exactly this structure:
 {
-  "improvedPrompt": "the improved version",
+  "improvedPrompt": "the full improved prompt text here",
   "improvedSystemPrompt": "improved system prompt or empty string",
   "changes": [
-    { "type": "clarity|specificity|efficiency|format", "description": "what changed and why" }
+    { "type": "clarity", "description": "what changed and why" }
   ]
 }
+
+Types must be one of: clarity, specificity, efficiency, format
 
 Original System Prompt: ${systemPrompt || '(none)'}
 Original User Prompt: ${prompt}`
 
-    const result = await p.execute('llama3-70b-8192', {
+    const result = await p.execute('llama-3.1-8b-instant', {
       userPrompt: metaPrompt,
       temperature: 0.3,
       maxTokens: 1024,
     })
 
-    const clean = result.output.replace(/```json|```/g, '').trim()
-    const parsed = JSON.parse(clean)
+    // Strip any markdown fences if present
+    let clean = result.output.trim()
+    clean = clean.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
+
+    // Extract JSON object if there's surrounding text
+    const jsonMatch = clean.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      res.status(500).json({ error: 'Could not parse AI response', raw: clean })
+      return
+    }
+
+    const parsed = JSON.parse(jsonMatch[0])
     res.json({ ...parsed, latencyMs: result.latencyMs })
   } catch (err: any) {
+    console.error('Improve error:', err)
     res.status(500).json({ error: err.message })
   }
 }
