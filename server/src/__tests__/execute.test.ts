@@ -1,10 +1,7 @@
 import request from 'supertest'
 import { createTestApp, cleanDatabase, prisma } from './helpers'
 
-process.env.JWT_SECRET = 'test_jwt_secret_for_ci'
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL ||
-  'postgresql://promptlab:promptlab_pass@localhost:5432/promptlab_test'
+
 
 const app = createTestApp()
 let token: string
