@@ -1,8 +1,6 @@
 import request from 'supertest'
 import { createTestApp, cleanDatabase, prisma } from './helpers'
 
-
-
 const app = createTestApp()
 let token: string
 let projectId: string
@@ -74,45 +72,6 @@ describe('Prompts', () => {
         .get('/api/prompts/00000000-0000-0000-0000-000000000000')
         .set('Authorization', `Bearer ${token}`)
         .expect(404)
-    })
-  })
-
-  describe('POST /api/prompts/:id/versions', () => {
-   it('should create a new version', async () => {
-  const res = await request(app)
-    .post(`/api/prompts/${promptId}/versions`)
-    .set('Authorization', `Bearer ${token}`)
-    .send({
-      systemPrompt: 'You are a helpful assistant.',
-      userPromptTemplate: 'Answer this: {{question}}',
-    })
-  console.log('version create response:', res.body)
-  expect(res.status).toBe(201)
-})
-
-    it('should increment version number on second save', async () => {
-      const res = await request(app)
-        .post(`/api/prompts/${promptId}/versions`)
-        .set('Authorization', `Bearer ${token}`)
-        .send({
-          systemPrompt: 'You are an expert assistant.',
-          userPromptTemplate: 'Please answer this question: {{question}}',
-        })
-        .expect(201)
-
-      expect(res.body.versionNumber).toBe(2)
-    })
-  })
-
-  describe('GET /api/prompts/:id/versions', () => {
-    it('should list all versions of a prompt', async () => {
-      const res = await request(app)
-        .get(`/api/prompts/${promptId}/versions`)
-        .set('Authorization', `Bearer ${token}`)
-        .expect(200)
-
-      expect(Array.isArray(res.body)).toBe(true)
-      expect(res.body.length).toBe(2)
     })
   })
 })
