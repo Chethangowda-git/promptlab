@@ -53,6 +53,13 @@
   "rootDir": "./src",
   "testMatch": ["**/__tests__/**/*.test.ts"],
   "testTimeout": 30000,
-  "setupFiles": ["./__tests__/setup.ts"]
+  "setupFiles": ["./__tests__/setup.ts"],
+  "globals": {
+    "ts-jest": {
+      "tsconfig": {
+        "module": "commonjs"
+      }
+    }
+  }
 }
 }

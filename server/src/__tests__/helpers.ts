@@ -6,6 +6,10 @@ import authRoutes from '../routes/auth.routes'
 import promptRoutes from '../routes/prompts.routes'
 import executeRoutes from '../routes/execute.routes'
 
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'test_jwt_secret_for_ci'
+}
+
 export const prisma = new PrismaClient({
   datasources: {
     db: {
