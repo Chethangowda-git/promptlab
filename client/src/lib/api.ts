@@ -1,7 +1,9 @@
 import axios from 'axios'
 
+// In Docker production: nginx proxies /api → server:4000 (relative URLs work)
+// In local dev: Vite proxies /api → localhost:4000 (relative URLs work too)
 const api = axios.create({
-  baseURL: 'http://localhost:4000',
+  baseURL: '',
 })
 
 api.interceptors.request.use((config) => {
