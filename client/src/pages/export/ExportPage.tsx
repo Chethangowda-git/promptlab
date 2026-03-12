@@ -1,17 +1,9 @@
 import { useEffect, useState } from 'react'
 import api from '../../lib/api'
+import { toast } from '../../components/ui/Toast'
 
-interface PromptVersion {
-  id: string
-  versionNumber: number
-  userPromptTemplate: string
-}
-
-interface Prompt {
-  id: string
-  name: string
-  versions: PromptVersion[]
-}
+interface PromptVersion { id: string; versionNumber: number }
+interface Prompt { id: string; name: string; versions: PromptVersion[] }
 
 export default function ExportPage() {
   const [prompts, setPrompts] = useState<Prompt[]>([])
@@ -26,14 +18,30 @@ export default function ExportPage() {
     api.get('/api/prompts').then((r) => setPrompts(r.data))
   }, [])
 
+  // Fetch all versions when prompt changes
+  useEffect(() => {
+    if (!selectedPromptId) return
+    setSelectedVersionId('')
+    setResult(null)
+    api.get(`/api/prompts/${selectedPromptId}`).then((r) => {
+      setPrompts((prev) =>
+        prev.map((p) => p.id === selectedPromptId ? { ...p, versions: r.data.versions } : p)
+      )
+    })
+  }, [selectedPromptId])
+
   const selectedPrompt = prompts.find((p) => p.id === selectedPromptId)
 
   const handleExport = async () => {
-    if (!selectedVersionId) return
+    if (!selectedPromptId) { toast.error('Select a prompt first'); return }
+    if (!selectedVersionId) { toast.error('Select a version to export'); return }
     setLoading(true)
     try {
       const res = await api.get(`/api/export/${selectedVersionId}/${format}`)
       setResult(res.data)
+      toast.success('Export generated successfully')
+    } catch {
+      toast.error('Export failed')
     } finally {
       setLoading(false)
     }
@@ -43,6 +51,7 @@ export default function ExportPage() {
     const text = format === 'python' ? result.code : JSON.stringify(result, null, 2)
     navigator.clipboard.writeText(text)
     setCopied(true)
+    toast.success('Copied to clipboard!')
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -56,45 +65,30 @@ export default function ExportPage() {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4 mb-6">
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs text-gray-500 mb-1.5">Prompt</label>
-            <select
-              value={selectedPromptId}
-              onChange={(e) => { setSelectedPromptId(e.target.value); setSelectedVersionId(''); setResult(null) }}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
-            >
+            <label className="block text-xs text-gray-500 mb-1.5">Prompt <span className="text-red-400">*</span></label>
+            <select value={selectedPromptId} onChange={(e) => setSelectedPromptId(e.target.value)}
+              className={`w-full bg-gray-800 border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 ${!selectedPromptId ? 'border-red-500/40' : 'border-gray-700'}`}>
               <option value="">Select prompt...</option>
-              {prompts.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
+              {prompts.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs text-gray-500 mb-1.5">Version</label>
-            <select
-              value={selectedVersionId}
-              onChange={(e) => { setSelectedVersionId(e.target.value); setResult(null) }}
+            <label className="block text-xs text-gray-500 mb-1.5">Version <span className="text-red-400">*</span></label>
+            <select value={selectedVersionId} onChange={(e) => { setSelectedVersionId(e.target.value); setResult(null) }}
               disabled={!selectedPrompt}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 disabled:opacity-40"
-            >
+              className={`w-full bg-gray-800 border rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 disabled:opacity-40 ${!selectedVersionId && selectedPrompt ? 'border-red-500/40' : 'border-gray-700'}`}>
               <option value="">Select version...</option>
-              {selectedPrompt?.versions.map((v) => (
-                <option key={v.id} value={v.id}>v{v.versionNumber}</option>
-              ))}
+              {selectedPrompt?.versions.map((v) => <option key={v.id} value={v.id}>v{v.versionNumber}</option>)}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs text-gray-500 mb-1.5">Format</label>
+            <label className="block text-xs text-gray-500 mb-1.5">Format <span className="text-red-400">*</span></label>
             <div className="flex gap-2">
               {(['json', 'python'] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => { setFormat(f); setResult(null) }}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    format === f ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'
-                  }`}
-                >
+                <button key={f} onClick={() => { setFormat(f); setResult(null) }}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${format === f ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
                   {f === 'json' ? 'JSON' : 'Python'}
                 </button>
               ))}
@@ -102,12 +96,9 @@ export default function ExportPage() {
           </div>
         </div>
 
-        <button
-          onClick={handleExport}
-          disabled={loading || !selectedVersionId}
-          className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors"
-        >
-          {loading ? 'Exporting...' : 'Generate Export'}
+        <button onClick={handleExport} disabled={loading || !selectedVersionId}
+          className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-colors">
+          {loading ? 'Generating...' : 'Generate Export'}
         </button>
       </div>
 
@@ -120,17 +111,12 @@ export default function ExportPage() {
               </span>
               <span className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded">{format.toUpperCase()}</span>
             </div>
-            <button
-              onClick={handleCopy}
-              className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-            >
+            <button onClick={handleCopy} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
               {copied ? '✓ Copied!' : 'Copy'}
             </button>
           </div>
           <pre className="p-5 text-sm text-gray-300 overflow-x-auto leading-relaxed">
-            <code>
-              {format === 'python' ? result.code : JSON.stringify(result, null, 2)}
-            </code>
+            <code>{format === 'python' ? result.code : JSON.stringify(result, null, 2)}</code>
           </pre>
         </div>
       )}
