@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/Chethangowda-git/promptlab/actions/workflows/ci.yml/badge.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+
 
 A full-stack web application for designing, testing, versioning, and optimizing prompts for Large Language Models. PromptLab treats prompts as first-class engineering artifacts — with version control, automated evaluation, A/B testing, and cost tracking.
 
