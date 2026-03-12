@@ -1,6 +1,11 @@
 import request from 'supertest'
 import { createTestApp, cleanDatabase, prisma } from './helpers'
 
+process.env.JWT_SECRET = 'test_jwt_secret_for_ci'
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ||
+  'postgresql://promptlab:promptlab_pass@localhost:5432/promptlab_test'
+
 const app = createTestApp()
 
 beforeAll(async () => {
@@ -43,9 +48,9 @@ describe('Auth', () => {
     })
 
     it('should fail if required fields are missing', async () => {
-      const res = await request(app)
+      await request(app)
         .post('/api/auth/register')
-        .send({ email: 'missing@test.com' })
+        .send({ email: 'incomplete@test.com' })
         .expect(500)
     })
   })
@@ -72,7 +77,7 @@ describe('Auth', () => {
     })
 
     it('should fail with non-existent email', async () => {
-      const res = await request(app)
+      await request(app)
         .post('/api/auth/login')
         .send({ email: 'nobody@test.com', password: 'password123' })
         .expect(401)

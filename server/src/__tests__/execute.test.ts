@@ -1,6 +1,11 @@
 import request from 'supertest'
 import { createTestApp, cleanDatabase, prisma } from './helpers'
 
+process.env.JWT_SECRET = 'test_jwt_secret_for_ci'
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ||
+  'postgresql://promptlab:promptlab_pass@localhost:5432/promptlab_test'
+
 const app = createTestApp()
 let token: string
 
@@ -30,11 +35,11 @@ describe('Execute', () => {
       expect(Array.isArray(res.body)).toBe(true)
       expect(res.body.length).toBeGreaterThan(0)
 
-      const providerNames = res.body.map((p: any) => p.name)
+      const providerNames = res.body.map((p: { name: string }) => p.name)
       expect(providerNames).toContain('groq')
       expect(providerNames).toContain('gemini')
 
-      res.body.forEach((p: any) => {
+      res.body.forEach((p: { name: string; models: string[] }) => {
         expect(p.name).toBeDefined()
         expect(Array.isArray(p.models)).toBe(true)
         expect(p.models.length).toBeGreaterThan(0)

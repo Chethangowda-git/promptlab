@@ -1,6 +1,11 @@
 import request from 'supertest'
 import { createTestApp, cleanDatabase, prisma } from './helpers'
 
+process.env.JWT_SECRET = 'test_jwt_secret_for_ci'
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ||
+  'postgresql://promptlab:promptlab_pass@localhost:5432/promptlab_test'
+
 const app = createTestApp()
 let token: string
 let projectId: string
@@ -9,7 +14,6 @@ let promptId: string
 beforeAll(async () => {
   await cleanDatabase()
 
-  // Register and get token
   const res = await request(app)
     .post('/api/auth/register')
     .send({ email: 'prompts@test.com', name: 'Prompt Tester', password: 'password123' })
@@ -70,7 +74,7 @@ describe('Prompts', () => {
 
     it('should return 404 for non-existent prompt', async () => {
       await request(app)
-        .get('/api/prompts/non-existent-id')
+        .get('/api/prompts/00000000-0000-0000-0000-000000000000')
         .set('Authorization', `Bearer ${token}`)
         .expect(404)
     })
