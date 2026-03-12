@@ -4,7 +4,7 @@ import { createTestApp, cleanDatabase, prisma } from './helpers'
 const app = createTestApp()
 let token: string
 let projectId: string
-let promptId: string
+// let promptId: string
 
 beforeAll(async () => {
   await cleanDatabase()
@@ -33,7 +33,7 @@ describe('Prompts', () => {
 
       expect(res.body.name).toBe('Test Prompt')
       expect(res.body.status).toBe('DRAFT')
-      promptId = res.body.id
+      // promptId = res.body.id
     })
 
     it('should fail without auth', async () => {
@@ -48,6 +48,7 @@ describe('Prompts', () => {
     it('should list all prompts', async () => {
       const res = await request(app)
         .get('/api/prompts')
+        .query({ projectId })
         .set('Authorization', `Bearer ${token}`)
         .expect(200)
 
