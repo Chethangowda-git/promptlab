@@ -47,13 +47,11 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "rootDir": "./src",
-    "testMatch": [
-      "**/__tests__/**/*.test.ts"
-    ],
-    "testTimeout": 30000
-  }
+ "jest": {
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "rootDir": "./src",
+  "testMatch": ["**/__tests__/**/*.test.ts"],
+  "testTimeout": 30000
+}
 }
