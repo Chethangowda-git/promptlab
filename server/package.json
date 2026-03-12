@@ -9,7 +9,7 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "start:prod": "npx prisma migrate deploy && node dist/index.js",
-    "test": "DATABASE_URL=postgresql://promptlab:promptlab_pass@localhost:5432/promptlab_test JWT_SECRET=test_jwt_secret npx prisma db push && jest --forceExit",
+    "test": "jest --forceExit",
     "test:ci": "jest --forceExit --ci",
     "lint": "eslint src/**/*.ts"
   },

@@ -6,6 +6,7 @@ import authRoutes from '../routes/auth.routes'
 import promptRoutes from '../routes/prompts.routes'
 import executeRoutes from '../routes/execute.routes'
 
+// PrismaClient reads DATABASE_URL from env — setup.ts ensures it's set first
 export const prisma = new PrismaClient()
 
 export function createTestApp() {
@@ -19,8 +20,8 @@ export function createTestApp() {
   return app
 }
 
+// Delete in reverse FK dependency order
 export async function cleanDatabase() {
-  // Order matters — delete children before parents
   await prisma.evaluationResult.deleteMany()
   await prisma.evaluation.deleteMany()
   await prisma.experiment.deleteMany()

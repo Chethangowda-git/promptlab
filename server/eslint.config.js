@@ -1,11 +1,15 @@
-import tseslint from '@typescript-eslint/eslint-plugin'
-import parser from '@typescript-eslint/parser'
+const tseslint = require('@typescript-eslint/eslint-plugin')
+const parser = require('@typescript-eslint/parser')
 
-export default [
+module.exports = [
   {
     files: ['src/**/*.ts'],
     languageOptions: {
       parser,
+      parserOptions: {
+        ecmaVersion: 2020,
+        sourceType: 'module',
+      },
     },
     plugins: {
       '@typescript-eslint': tseslint,
