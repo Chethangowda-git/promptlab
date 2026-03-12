@@ -1,8 +1,6 @@
 import request from 'supertest'
 import { createTestApp, cleanDatabase, prisma } from './helpers'
 
-
-
 const app = createTestApp()
 let token: string
 
@@ -11,7 +9,11 @@ beforeAll(async () => {
 
   const res = await request(app)
     .post('/api/auth/register')
-    .send({ email: 'execute@test.com', name: 'Execute Tester', password: 'password123' })
+    .send({
+      email: 'execute@promptlab.com',
+      name: 'Execute Tester',
+      password: 'password123',
+    })
 
   token = res.body.token
 })

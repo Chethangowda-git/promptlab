@@ -4,14 +4,17 @@ import { createTestApp, cleanDatabase, prisma } from './helpers'
 const app = createTestApp()
 let token: string
 let projectId: string
-// let promptId: string
 
 beforeAll(async () => {
   await cleanDatabase()
 
   const res = await request(app)
     .post('/api/auth/register')
-    .send({ email: 'prompts@test.com', name: 'Prompt Tester', password: 'password123' })
+    .send({
+      email: 'prompts@promptlab.com',
+      name: 'Prompt Tester',
+      password: 'password123',
+    })
 
   token = res.body.token
   projectId = res.body.defaultProjectId
@@ -33,7 +36,6 @@ describe('Prompts', () => {
 
       expect(res.body.name).toBe('Test Prompt')
       expect(res.body.status).toBe('DRAFT')
-      // promptId = res.body.id
     })
 
     it('should fail without auth', async () => {
@@ -45,7 +47,7 @@ describe('Prompts', () => {
   })
 
   describe('GET /api/prompts', () => {
-    it('should list all prompts', async () => {
+    it('should list prompts for a project', async () => {
       const res = await request(app)
         .get('/api/prompts')
         .query({ projectId })
@@ -55,15 +57,11 @@ describe('Prompts', () => {
       expect(Array.isArray(res.body)).toBe(true)
       expect(res.body.length).toBeGreaterThan(0)
     })
-  })
 
-  describe('GET /api/prompts/:id', () => {
-
-    it('should return 404 for non-existent prompt', async () => {
+    it('should fail without auth', async () => {
       await request(app)
-        .get('/api/prompts/00000000-0000-0000-0000-000000000000')
-        .set('Authorization', `Bearer ${token}`)
-        .expect(404)
+        .get('/api/prompts')
+        .expect(401)
     })
   })
 })

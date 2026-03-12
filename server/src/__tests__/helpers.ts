@@ -6,17 +6,7 @@ import authRoutes from '../routes/auth.routes'
 import promptRoutes from '../routes/prompts.routes'
 import executeRoutes from '../routes/execute.routes'
 
-if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = 'test_jwt_secret_for_ci'
-}
-
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-})
+export const prisma = new PrismaClient()
 
 export function createTestApp() {
   const app = express()
@@ -30,6 +20,7 @@ export function createTestApp() {
 }
 
 export async function cleanDatabase() {
+  // Order matters — delete children before parents
   await prisma.evaluationResult.deleteMany()
   await prisma.evaluation.deleteMany()
   await prisma.experiment.deleteMany()
