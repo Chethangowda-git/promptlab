@@ -40,12 +40,13 @@ export default function PromptEditor() {
     setShowImprove(true)
   }
 
-  const handleAcceptImprove = () => {
-    if (!improveResult) return
-    setUserPrompt(improveResult.improvedPrompt)
-    if (improveResult.improvedSystemPrompt) setSystemPrompt(improveResult.improvedSystemPrompt)
-    setShowImprove(false)
-  }
+const handleAcceptImprove = () => {
+  if (!improveResult) return
+  // Fix: improved system prompt goes to system, improved prompt goes to user
+  if (improveResult.improvedSystemPrompt) setSystemPrompt(improveResult.improvedSystemPrompt)
+  setUserPrompt(improveResult.improvedPrompt)
+  setShowImprove(false)
+}
 
   if (!activePrompt) return (
     <div className="flex items-center justify-center h-64 text-gray-500">Loading...</div>

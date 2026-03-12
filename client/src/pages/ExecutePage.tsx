@@ -27,6 +27,28 @@ export default function ExecutePage() {
     clearResults()
   }, [])
 
+  useEffect(() => {
+  api.get('/api/execute/providers').then((r) => {
+    setProviders(r.data)
+    if (r.data.length > 0) {
+      setSelectedModels([{ provider: r.data[0].name, model: r.data[0].models[0] }])
+    }
+  })
+  clearResults()
+
+  // Pre-populate from query params
+  const promptId = searchParams.get('promptId')
+  if (promptId) {
+    api.get(`/api/prompts/${promptId}`).then((r) => {
+      const latest = r.data.versions?.[0]
+      if (latest) {
+        setSystemPrompt(latest.systemPrompt ?? '')
+        setUserPrompt(latest.userPromptTemplate ?? '')
+      }
+    })
+  }
+}, [])
+
   const toggleModel = (provider: string, model: string) => {
     const key = `${provider}:${model}`
     const exists = selectedModels.find((m) => `${m.provider}:${m.model}` === key)
@@ -173,7 +195,7 @@ export default function ExecutePage() {
                       <div className="flex items-center gap-3 text-xs text-gray-500">
                         <span>⏱ {r.latencyMs}ms</span>
                         <span>↑{r.inputTokens} ↓{r.outputTokens}</span>
-                        <span className="text-green-400">${r.cost.toFixed(6)}</span>
+                        <span className="text-green-400">${Number(r.cost).toFixed(6)}</span>
                       </div>
                     </div>
                     <div className="p-4">

@@ -5,6 +5,9 @@ const links = [
   { to: '/dashboard', label: 'Dashboard', icon: '⊞' },
   { to: '/prompts', label: 'Prompts', icon: '✦' },
   { to: '/execute', label: 'Execute', icon: '▶' },
+  { to: '/evaluate', label: 'Evaluate', icon: '◎' },
+  { to: '/experiments', label: 'A/B Tests', icon: '⇌' },
+  { to: '/export', label: 'Export', icon: '↗' },
 ]
 
 export default function Sidebar() {

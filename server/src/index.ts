@@ -6,6 +6,9 @@ import dotenv from 'dotenv'
 import authRoutes from './routes/auth.routes'
 import promptRoutes from './routes/prompts.routes'
 import executeRoutes from './routes/execute.routes'
+import evaluationRoutes from './routes/evaluation.routes'
+import exportRoutes from './routes/export.routes'
+import experimentRoutes from './routes/experiment.routes'
 
 dotenv.config()
 
@@ -24,6 +27,9 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/prompts', promptRoutes)
 app.use('/api/execute', executeRoutes)
+app.use('/api/evaluations', evaluationRoutes)
+app.use('/api/export', exportRoutes)
+app.use('/api/experiments', experimentRoutes)
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`)

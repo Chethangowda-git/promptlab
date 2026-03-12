@@ -38,23 +38,21 @@ export async function improvePrompt(req: AuthRequest, res: Response): Promise<vo
     const { prompt, systemPrompt } = req.body
     const p = getProvider('groq')
 
-    const metaPrompt = `You are a prompt engineering expert. Improve the following prompt.
+const metaPrompt = `You are a prompt engineering expert. Improve the following prompts.
 
-IMPORTANT: Respond ONLY with a valid JSON object. No markdown, no backticks, no explanation outside the JSON.
+IMPORTANT: Respond ONLY with a valid JSON object. No markdown, no backticks.
 
 Return exactly this structure:
 {
-  "improvedPrompt": "the full improved prompt text here",
-  "improvedSystemPrompt": "improved system prompt or empty string",
+  "improvedPrompt": "improved USER prompt here",
+  "improvedSystemPrompt": "improved SYSTEM prompt here, or empty string if none",
   "changes": [
     { "type": "clarity", "description": "what changed and why" }
   ]
 }
 
-Types must be one of: clarity, specificity, efficiency, format
-
-Original System Prompt: ${systemPrompt || '(none)'}
-Original User Prompt: ${prompt}`
+SYSTEM prompt (persona/rules for the AI): ${systemPrompt || '(none)'}
+USER prompt (the actual question/instruction): ${prompt}`
 
     const result = await p.execute('llama-3.1-8b-instant', {
       userPrompt: metaPrompt,
