@@ -16,6 +16,10 @@ beforeAll(async () => {
       password: 'password123',
     })
 
+  if (!res.body.token) {
+    throw new Error(`Registration failed: ${JSON.stringify(res.body)}`)
+  }
+
   token = res.body.token
   projectId = res.body.defaultProjectId
 })
