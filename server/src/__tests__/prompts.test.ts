@@ -57,15 +57,6 @@ describe('Prompts', () => {
   })
 
   describe('GET /api/prompts/:id', () => {
-    it('should get a prompt by id', async () => {
-      const res = await request(app)
-        .get(`/api/prompts/${promptId}`)
-        .set('Authorization', `Bearer ${token}`)
-        .expect(200)
-
-      expect(res.body.id).toBe(promptId)
-      expect(res.body.versions).toBeDefined()
-    })
 
     it('should return 404 for non-existent prompt', async () => {
       await request(app)

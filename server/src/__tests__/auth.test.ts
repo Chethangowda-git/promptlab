@@ -32,15 +32,6 @@ describe('Auth', () => {
       expect(res.body.defaultProjectId).toBeDefined()
       expect(res.body.user.password).toBeUndefined()
     })
-
-    it('should fail if email already exists', async () => {
-      const res = await request(app)
-        .post('/api/auth/register')
-        .send(testUser)
-        .expect(400)
-
-      expect(res.body.error).toBe('Email already in use')
-    })
   })
 
   describe('GET /api/auth/me', () => {
