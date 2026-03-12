@@ -9,8 +9,8 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "start:prod": "npx prisma migrate deploy && node dist/index.js",
-    "test": "jest --forceExit",
-    "test:ci": "jest --forceExit --ci",
+    "test:ci": "jest --forceExit --ci --runInBand",
+    "test": "jest --forceExit --runInBand",
     "lint": "eslint src/**/*.ts"
   },
   "dependencies": {
@@ -57,7 +57,6 @@
     "testTimeout": 30000,
     "setupFiles": [
       "./__tests__/setup.ts"
-    ],
-    "runInBand": true
+    ]
   }
 }
