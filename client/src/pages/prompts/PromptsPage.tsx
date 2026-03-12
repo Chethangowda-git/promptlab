@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePromptStore } from '../../store/prompt.store'
 import { useAuthStore } from '../../store/auth.store'
+import { toast } from '../../components/ui/Toast'
 
 export default function PromptsPage() {
   const { prompts, fetchPrompts, createPrompt } = usePromptStore()
@@ -13,22 +14,26 @@ export default function PromptsPage() {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetchPrompts()
+    fetchPrompts().catch(() => toast.error('Failed to load prompts'))
   }, [])
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
+    const projectId = (user as any)?.defaultProjectId
+    if (!projectId) {
+      toast.error('No project found — please log out and log back in')
+      return
+    }
     setLoading(true)
     try {
-      const prompt = await createPrompt({
-        projectId: (user as any)?.defaultProjectId ?? '',
-        name,
-        description,
-      })
+      const prompt = await createPrompt({ projectId, name, description })
+      toast.success(`Prompt "${name}" created`)
       setShowCreate(false)
       setName('')
       setDescription('')
       navigate(`/prompts/${prompt.id}`)
+    } catch {
+      toast.error('Failed to create prompt')
     } finally {
       setLoading(false)
     }

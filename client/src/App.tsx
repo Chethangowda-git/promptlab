@@ -9,6 +9,7 @@ import ExecutePage from './pages/ExecutePage'
 import EvaluationPage from './pages/evaluation/EvaluationPage'
 import ExportPage from './pages/export/ExportPage'
 import ExperimentsPage from './pages/experiments/ExperimentsPage'
+import { ToastContainer } from './components/ui/Toast'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
+      <ToastContainer />
     </BrowserRouter>
   )
 }

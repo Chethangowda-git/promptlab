@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Editor from '@monaco-editor/react'
 import { usePromptStore } from '../../store/prompt.store'
+import { toast } from '../../components/ui/Toast'
 
 export default function PromptEditor() {
   const { id } = useParams()
@@ -15,7 +16,7 @@ export default function PromptEditor() {
   const [activeTab, setActiveTab] = useState<'editor' | 'versions'>('editor')
 
   useEffect(() => {
-    if (id) fetchPrompt(id)
+    if (id) fetchPrompt(id).catch(() => toast.error('Failed to load prompt'))
   }, [id])
 
   useEffect(() => {
@@ -26,27 +27,41 @@ export default function PromptEditor() {
   }, [activePrompt])
 
   const handleSave = async () => {
-    if (!id || !userPrompt.trim()) return
+    if (!id || !userPrompt.trim()) {
+      toast.warning('User prompt cannot be empty')
+      return
+    }
     setSaving(true)
     try {
       await createVersion(id, { systemPrompt, userPromptTemplate: userPrompt })
+      toast.success(`Version v${(activePrompt?.versions?.length ?? 0) + 1} saved`)
+    } catch {
+      toast.error('Failed to save version')
     } finally {
       setSaving(false)
     }
   }
 
   const handleImprove = async () => {
-    await improvePrompt(userPrompt, systemPrompt)
-    setShowImprove(true)
+    if (!userPrompt.trim()) {
+      toast.warning('Add a user prompt before improving')
+      return
+    }
+    try {
+      await improvePrompt(userPrompt, systemPrompt)
+      setShowImprove(true)
+    } catch {
+      toast.error('AI improvement failed — check your API key')
+    }
   }
 
-const handleAcceptImprove = () => {
-  if (!improveResult) return
-  // Fix: improved system prompt goes to system, improved prompt goes to user
-  if (improveResult.improvedSystemPrompt) setSystemPrompt(improveResult.improvedSystemPrompt)
-  setUserPrompt(improveResult.improvedPrompt)
-  setShowImprove(false)
-}
+  const handleAcceptImprove = () => {
+    if (!improveResult) return
+    if (improveResult.improvedSystemPrompt) setSystemPrompt(improveResult.improvedSystemPrompt)
+    setUserPrompt(improveResult.improvedPrompt)
+    setShowImprove(false)
+    toast.success('Prompt improved — click Save Version to keep changes')
+  }
 
   if (!activePrompt) return (
     <div className="flex items-center justify-center h-64 text-gray-500">Loading...</div>
@@ -107,7 +122,6 @@ const handleAcceptImprove = () => {
 
       {activeTab === 'editor' && (
         <div className="grid grid-cols-2 gap-4">
-          {/* System Prompt */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-300">System Prompt</span>
@@ -119,18 +133,10 @@ const handleAcceptImprove = () => {
               theme="vs-dark"
               value={systemPrompt}
               onChange={(v) => setSystemPrompt(v ?? '')}
-              options={{
-                minimap: { enabled: false },
-                fontSize: 13,
-                lineNumbers: 'off',
-                wordWrap: 'on',
-                scrollBeyondLastLine: false,
-                padding: { top: 12, bottom: 12 },
-              }}
+              options={{ minimap: { enabled: false }, fontSize: 13, lineNumbers: 'off', wordWrap: 'on', scrollBeyondLastLine: false, padding: { top: 12, bottom: 12 } }}
             />
           </div>
 
-          {/* User Prompt */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
               <span className="text-sm font-medium text-gray-300">User Prompt</span>
@@ -142,18 +148,10 @@ const handleAcceptImprove = () => {
               theme="vs-dark"
               value={userPrompt}
               onChange={(v) => setUserPrompt(v ?? '')}
-              options={{
-                minimap: { enabled: false },
-                fontSize: 13,
-                lineNumbers: 'off',
-                wordWrap: 'on',
-                scrollBeyondLastLine: false,
-                padding: { top: 12, bottom: 12 },
-              }}
+              options={{ minimap: { enabled: false }, fontSize: 13, lineNumbers: 'off', wordWrap: 'on', scrollBeyondLastLine: false, padding: { top: 12, bottom: 12 } }}
             />
           </div>
 
-          {/* Variable hint */}
           <div className="col-span-2 bg-gray-900/50 border border-gray-800 rounded-lg px-4 py-3">
             <p className="text-xs text-gray-500">
               💡 Use <code className="bg-gray-800 px-1.5 py-0.5 rounded text-indigo-400">{`{{variable_name}}`}</code> syntax to define dynamic variables in your prompts.
@@ -184,6 +182,7 @@ const handleAcceptImprove = () => {
                       setSystemPrompt(v.systemPrompt ?? '')
                       setUserPrompt(v.userPromptTemplate)
                       setActiveTab('editor')
+                      toast.info(`Loaded v${v.versionNumber}`)
                     }}
                     className="border-b border-gray-800/50 hover:bg-gray-800/30 cursor-pointer transition-colors"
                   >
